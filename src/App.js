@@ -6,7 +6,7 @@ import RandomAlbum from './components/RandomAlbum';
 function Header() {
   return (
     <div>
-      <header className="text-[65px] pt-[60px] text-neutral-50">Random Album Generator</header>
+      <header className="text-[65px] pt-[60px] text-neutral-50">RYM Random Album Generator</header>
       <p className="text-[15px] text-zinc-600">Made by Hendrick</p>
     </div>
   );

@@ -7,8 +7,8 @@ const albumImages = require.context('../images/albums', false, /\.(jpg|jpeg|png)
 // Array of album information
 const albumInfo = [
   {
-    title: 'Album 1',
-    artist: 'Artist 1',
+    title: 'Max & Match',
+    artist: '	이달의 소녀 오드아이써클 [LOONA ODD EYE CIRCLE]',
     streamingLinks: {
       spotify: 'https://open.spotify.com/album/1',
       appleMusic: 'https://music.apple.com/album/1',
@@ -16,8 +16,8 @@ const albumInfo = [
     }
   },
   {
-    title: 'Album 2',
-    artist: 'Artist 2',
+    title: 'Fôrça bruta',
+    artist: 'Jorge Ben',
     streamingLinks: {
       spotify: 'https://open.spotify.com/album/2',
       appleMusic: 'https://music.apple.com/album/2',
@@ -25,8 +25,8 @@ const albumInfo = [
     }
   },
   {
-    title: 'Album 3',
-    artist: 'Artist 3',
+    title: 'To Pimp a Butterfly',
+    artist: 'Kendrick Lamar',
     streamingLinks: {
       spotify: 'https://open.spotify.com/album/3',
       appleMusic: 'https://music.apple.com/album/3',
@@ -34,8 +34,8 @@ const albumInfo = [
     }
   },
   {
-    title: 'Album 4',
-    artist: 'Artist 4',
+    title: 'Loveless',
+    artist: 'My Bloody Valentine',
     streamingLinks: {
       spotify: 'https://open.spotify.com/album/4',
       appleMusic: 'https://music.apple.com/album/4',
