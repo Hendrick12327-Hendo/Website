@@ -1,16 +1,20 @@
 {
   "files": {
-    "main.css": "/static/css/main.f855e6bc.css",
-    "main.js": "/static/js/main.04ac4ba9.js",
+    "main.css": "/static/css/main.5729e62e.css",
+    "main.js": "/static/js/main.8b11ba20.js",
     "static/js/453.bb828c5d.chunk.js": "/static/js/453.bb828c5d.chunk.js",
-    "static/media/logo.svg": "/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
+    "static/media/Max & Match.png": "/static/media/Max & Match.5cffdde61f67886f4b5e.png",
+    "static/media/jorge-ben-forca-bruta-Cover-Art.png": "/static/media/jorge-ben-forca-bruta-Cover-Art.cc31e47fd2255450adc0.png",
+    "static/media/kendrick-lamar-to-pimp-a-butterf.png": "/static/media/kendrick-lamar-to-pimp-a-butterf.6bbb3aff0a26ae73bd4e.png",
+    "static/media/my-bloody-valentine-loveless-Cov.png": "/static/media/my-bloody-valentine-loveless-Cov.36808f3084183a4e7c85.png",
+    "static/media/Aldine 401 Regular.otf": "/static/media/Aldine 401 Regular.f64585c5f5953fda2830.otf",
     "index.html": "/index.html",
-    "main.f855e6bc.css.map": "/static/css/main.f855e6bc.css.map",
-    "main.04ac4ba9.js.map": "/static/js/main.04ac4ba9.js.map",
+    "main.5729e62e.css.map": "/static/css/main.5729e62e.css.map",
+    "main.8b11ba20.js.map": "/static/js/main.8b11ba20.js.map",
     "453.bb828c5d.chunk.js.map": "/static/js/453.bb828c5d.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.f855e6bc.css",
-    "static/js/main.04ac4ba9.js"
+    "static/css/main.5729e62e.css",
+    "static/js/main.8b11ba20.js"
   ]
 }
