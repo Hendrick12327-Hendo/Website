@@ -28,9 +28,18 @@ const albumInfo = [
     title: 'Album 3',
     artist: 'Artist 3',
     streamingLinks: {
-      spotify: 'https://open.spotify.com/album/2',
-      appleMusic: 'https://music.apple.com/album/2',
-      rateYourMusic: 'https://rateyourmusic.com/release/album/2'
+      spotify: 'https://open.spotify.com/album/3',
+      appleMusic: 'https://music.apple.com/album/3',
+      rateYourMusic: 'https://rateyourmusic.com/release/album/3'
+    }
+  },
+  {
+    title: 'Album 4',
+    artist: 'Artist 4',
+    streamingLinks: {
+      spotify: 'https://open.spotify.com/album/4',
+      appleMusic: 'https://music.apple.com/album/4',
+      rateYourMusic: 'https://rateyourmusic.com/release/album/4'
     }
   },
 ];
@@ -60,21 +69,21 @@ function RandomAlbum() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center mt-[-200px]">
-      <img src={album} alt="Random Album" className="w-1/2 h-auto mb-4 mt-[-20px] transform scale-[0.35]" />
+    <div className="flex flex-col items-center justify-center h-screen relative">
+      <img src={album} alt="Random Album" className="w-1/2 h-auto mb-4 mt-[-500px] transform scale-[0.35]" />
       <div className="text-center mb-4 mt-[-300px]">
         <h2 className="text-2xl font-bold text-white">{info.title}</h2>
         <p className="text-xl text-white">{info.artist}</p>
-        <div className="flex justify-center space-x-4">
-          <a href={info.streamingLinks.spotify} className="text-blue-500" target="_blank" rel="noopener noreferrer">Spotify</a>
-          <a href={info.streamingLinks.appleMusic} className="text-blue-500" target="_blank" rel="noopener noreferrer">Apple Music</a>
-          <a href={info.streamingLinks.rateYourMusic} className="text-blue-500" target="_blank" rel="noopener noreferrer">Rate Your Music</a>
-        </div>
       </div>
-      <button onClick={handleNewAlbum} className="bg-blue-500 text-white p-4 rounded mb-4">
-        Give me a Random Album
+      <button onClick={handleNewAlbum} className="bg-emerald-600 text-white p-4 rounded-md mb-4">
+        Give Me Another Album
       </button>
-      <Link to="/" className="text-blue-500">Go Back</Link>
+      <Link to="/" className="text-blue-300 mb-4">Go Back</Link>
+      <div className="absolute bottom-4 flex space-x-4">
+        <a href={info.streamingLinks.spotify} className="text-blue-300" target="_blank" rel="noopener noreferrer">Spotify</a>
+        <a href={info.streamingLinks.appleMusic} className="text-blue-300" target="_blank" rel="noopener noreferrer">Apple Music</a>
+        <a href={info.streamingLinks.rateYourMusic} className="text-blue-300" target="_blank" rel="noopener noreferrer">Rate Your Music</a>
+      </div>
     </div>
   );
 }
