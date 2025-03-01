@@ -8,7 +8,7 @@ const albumImages = require.context('../images/albums', false, /\.(jpg|jpeg|png)
 const albumInfo = [
   {
     title: 'Max & Match',
-    artist: '	이달의 소녀 오드아이써클 [LOONA ODD EYE CIRCLE]',
+    artist: '이달의 소녀 오드아이써클 [LOONA ODD EYE CIRCLE]',
     streamingLinks: {
       spotify: 'https://open.spotify.com/album/1',
       appleMusic: 'https://music.apple.com/album/1',
@@ -75,15 +75,10 @@ function RandomAlbum() {
         <h2 className="text-2xl font-bold text-white">{info.title}</h2>
         <p className="text-xl text-white">{info.artist}</p>
       </div>
-      <button onClick={handleNewAlbum} className="bg-emerald-600 text-white p-4 rounded-md mb-4">
+      <button onClick={handleNewAlbum} className="bg-emerald-600 text-white p-4 rounded-md mb-4 hover:bg-emerald-700">
         Give Me Another Album
       </button>
       <Link to="/" className="text-blue-300 mb-4">Go Back</Link>
-      <div className="absolute bottom-4 flex space-x-4">
-        <a href={info.streamingLinks.spotify} className="text-blue-300" target="_blank" rel="noopener noreferrer">Spotify</a>
-        <a href={info.streamingLinks.appleMusic} className="text-blue-300" target="_blank" rel="noopener noreferrer">Apple Music</a>
-        <a href={info.streamingLinks.rateYourMusic} className="text-blue-300" target="_blank" rel="noopener noreferrer">Rate Your Music</a>
-      </div>
     </div>
   );
 }

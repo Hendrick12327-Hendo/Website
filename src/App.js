@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import './App.css';
 import RandomAlbum from './components/RandomAlbum';
+import BlurGame from './components/BlurGame';
 
 function Header() {
   return (
@@ -17,8 +18,15 @@ function Home() {
     <div className="App flex flex-col items-center justify-center h-screen relative">
       <Header />
       <div className="flex-grow"></div>
+      <Link to="/blur-game">
+        <button className="text-[20px] bg-emerald-600 text-white p-4 rounded-md hover:bg-emerald-700 mb-4">
+          Blur Game
+        </button>
+      </Link>
       <Link to="/random-album">
-        <button className="text-[25px] bg-emerald-600 text-white p-4 rounded-md">Give Me an Album</button>
+        <button className="text-[20px] bg-emerald-600 text-white p-4 rounded-md hover:bg-emerald-700">
+          Random Album Picker
+        </button>
       </Link>
       <div className="flex-grow"></div>
       <div className="absolute bottom-4 flex space-x-4">
@@ -35,6 +43,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/random-album" element={<RandomAlbum />} />
+        <Route path="/blur-game" element={<BlurGame />} />
       </Routes>
     </Router>
   );
