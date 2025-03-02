@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { albumInfo } from '../data';
 
-// Use require.context to dynamically load all images from the directory
+const albumInfo = JSON.parse("data.json");
 const albumImages = require.context('../images/albums', false, /\.(jpg|jpeg|png)$/).keys().map(require.context('../images/albums', false, /\.(jpg|jpeg|png)$/));
 
 function getRandomAlbum(currentAlbum) {
