@@ -1,48 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { albumInfo } from '../data';
 
 // Use require.context to dynamically load all images from the directory
 const albumImages = require.context('../images/albums', false, /\.(jpg|jpeg|png)$/).keys().map(require.context('../images/albums', false, /\.(jpg|jpeg|png)$/));
-
-// Array of album information
-const albumInfo = [
-  {
-    title: 'Max & Match',
-    artist: '이달의 소녀 오드아이써클 [LOONA ODD EYE CIRCLE]',
-    streamingLinks: {
-      spotify: 'https://open.spotify.com/album/1',
-      appleMusic: 'https://music.apple.com/album/1',
-      rateYourMusic: 'https://rateyourmusic.com/release/album/1'
-    }
-  },
-  {
-    title: 'Fôrça bruta',
-    artist: 'Jorge Ben',
-    streamingLinks: {
-      spotify: 'https://open.spotify.com/album/2',
-      appleMusic: 'https://music.apple.com/album/2',
-      rateYourMusic: 'https://rateyourmusic.com/release/album/2'
-    }
-  },
-  {
-    title: 'To Pimp a Butterfly',
-    artist: 'Kendrick Lamar',
-    streamingLinks: {
-      spotify: 'https://open.spotify.com/album/3',
-      appleMusic: 'https://music.apple.com/album/3',
-      rateYourMusic: 'https://rateyourmusic.com/release/album/3'
-    }
-  },
-  {
-    title: 'Loveless',
-    artist: 'My Bloody Valentine',
-    streamingLinks: {
-      spotify: 'https://open.spotify.com/album/4',
-      appleMusic: 'https://music.apple.com/album/4',
-      rateYourMusic: 'https://rateyourmusic.com/release/album/4'
-    }
-  },
-];
 
 function getRandomAlbum(currentAlbum) {
   let newAlbum;

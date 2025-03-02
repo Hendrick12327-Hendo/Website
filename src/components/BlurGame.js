@@ -1,32 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { albumInfo } from '../data';
+import { Pixelify } from "react-pixelify";
 
-// Use require.context to dynamically load all images from the directory
 const albumImages = require.context('../images/albums', false, /\.(jpg|jpeg|png)$/).keys().map(require.context('../images/albums', false, /\.(jpg|jpeg|png)$/));
-
-// Array of album information
-const albumInfo = [
-  {
-    title: 'Max & Match',
-    artist: '이달의 소녀 오드아이써클 [LOONA ODD EYE CIRCLE]',
-    blurGameEligible: false
-  },
-  {
-    title: 'Fôrça bruta',
-    artist: 'Jorge Ben',
-    blurGameEligible: true
-  },
-  {
-    title: 'To Pimp a Butterfly',
-    artist: 'Kendrick Lamar',
-    blurGameEligible: true
-  },
-  {
-    title: 'Loveless',
-    artist: 'My Bloody Valentine',
-    blurGameEligible: true
-  },
-];
 
 function getRandomAlbum(currentAlbum) {
   const eligibleAlbums = albumInfo.filter(album => album.blurGameEligible);
@@ -39,25 +16,65 @@ function getRandomAlbum(currentAlbum) {
   return newAlbum;
 }
 
-function normalizeString(str) {
-  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+function normalizeString(str, symbol=false) {
+  if (symbol)
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  else
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace("&", "and");
 }
+
+const modes = {
+  advanced: [75, 50, 25],
+  intermediate: [60, 40, 15],
+  beginner: [40, 20, 5]
+};
 
 function BlurGame() {
   const [album, setAlbum] = useState(getRandomAlbum({ image: null }));
   const [guess, setGuess] = useState('');
-  const [message, setMessage] = useState('');
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [pixelSize, setPixelSize] = useState(75);
+  const [borderColor, setBorderColor] = useState('');
+  const [attempts, setAttempts] = useState(0);
+  const [mode, setMode] = useState(null); // Initially, no mode is selected
 
   const handleGuess = () => {
-    if (normalizeString(guess) === normalizeString(album.info.title)) {
-      setMessage('Correct!');
+    if (
+      normalizeString(guess, false) === normalizeString(album.info.title, false) ||
+      normalizeString(guess, true) === normalizeString(album.info.title, true)
+    ) {
+      setIsCorrect(true);
+      setBorderColor('border-green-500');
+      setPixelSize(0);
       setTimeout(() => {
         setAlbum(getRandomAlbum(album));
         setGuess('');
-        setMessage('');
-      }, 1000); // Wait 1 second before loading a new album
-    } else {
-      setMessage('Try Again!');
+        setPixelSize(modes[mode][0]);
+        setBorderColor('');
+        setAttempts(0);
+        setIsCorrect(false);
+      }, 1500); // Milliseconds, 1000 ms = 1 second
+    } else if (!guess)
+      return;
+    else {
+      setBorderColor('border-red-500');
+      setTimeout(() => {
+        setBorderColor('');
+      }, 300); // Flash red for 1 second
+
+      setAttempts(attempts + 1);
+      if (attempts < 2) {
+        setPixelSize(modes[mode][attempts + 1]);
+      } else {
+        setPixelSize(0);
+        setTimeout(() => {
+          setAlbum(getRandomAlbum(album));
+          setGuess('');
+          setPixelSize(modes[mode][0]);
+          setBorderColor('');
+          setAttempts(0);
+        }, 1500); // Milliseconds, 1000 ms = 1 second
+      }
     }
   };
 
@@ -67,19 +84,66 @@ function BlurGame() {
     }
   };
 
+  const handleModeSelect = (selectedMode) => {
+    setMode(selectedMode);
+    setPixelSize(modes[selectedMode][0]);
+    setAttempts(0);
+    setGuess('');
+    setAlbum(getRandomAlbum({ image: null }));
+  };
+
+  if (!mode) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <h1 className="text-white text-[35px] mb-4">Select Mode</h1>
+        <div className="flex space-x-4">
+          <button onClick={() => handleModeSelect('advanced')} className="bg-emerald-600 text-white p-4 rounded-md hover:bg-emerald-700">
+            Advanced
+          </button>
+          <button onClick={() => handleModeSelect('intermediate')} className="bg-emerald-600 text-white p-4 rounded-md hover:bg-emerald-700">
+            Intermediate
+          </button>
+          <button onClick={() => handleModeSelect('beginner')} className="bg-emerald-600 text-white p-4 rounded-md hover:bg-emerald-700">
+            Beginner
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  let message;
+  if (attempts === 0) {
+    message = "You have 3 guesses.";
+  } else if (attempts >= 3) {
+    message = `Out of guesses! The correct answer was <b>${album.info.title}</b>.`;
+  } else if (isCorrect) {
+    message = "Correct!";
+  } else {
+    message = `You have ${3 - attempts} guesses left.`;
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center h-screen relative">
-      <img src={album.image} alt="Blurred Album" className="w-1/2 h-auto mt-[-300px] transform scale-[0.35]" style={{ filter: 'blur(40px)' }} />
-      <input
-        type="text"
-        value={guess}
-        onChange={(e) => setGuess(e.target.value)}
-        onKeyPress={handleKeyPress}
-        placeholder="Album Title..."
-        className="p-2 mb-4 mt-[-250px] border rounded"
-      />
-      <p className="text-white mb-4">{message}</p>
-      <Link to="/" className="text-blue-300 mb-4">Go Back</Link>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <div className="mb-4 text-white text-[25px]" dangerouslySetInnerHTML={{ __html: message }} />
+      <div className="mb-4">
+        <Pixelify
+          src={album.image}
+          pixelSize={pixelSize}
+          width={600}
+          height={600}
+        />
+      </div>
+      <div className="flex flex-col items-center">
+        <input
+          type="text"
+          value={guess}
+          onChange={(e) => setGuess(e.target.value)}
+          onKeyDown={handleKeyPress}
+          placeholder="Album Title..."
+          className={`animate-fade outline-none p-2 mb-4 rounded border-4 ${borderColor}`}
+        />
+        <Link to="/" className="text-blue-300 mb-4">Go Back</Link>
+      </div>
     </div>
   );
 }

@@ -7,8 +7,8 @@ import BlurGame from './components/BlurGame';
 function Header() {
   return (
     <div>
-      <header className="text-[65px] pt-[60px] text-neutral-50">RYM Random Album Generator</header>
-      <p className="text-[15px] text-zinc-600">Made by Hendrick</p>
+      <header className="text-[65px] pt-[60px] text-neutral-50">Random Album Generator</header>
+      <p className="text-[15px] text-zinc-600">Made by Hendrick and Hashem</p>
     </div>
   );
 }
@@ -31,6 +31,7 @@ function Home() {
       <div className="flex-grow"></div>
       <div className="absolute bottom-4 flex space-x-4">
         <a href="https://discord.com/users/_hendo." target="_blank" rel="noopener noreferrer" className="text-blue-300">My Discord</a>
+        <span className='text-blue-300'>|</span>
         <a href="https://rateyourmusic.com/~_Hendo" target="_blank" rel="noopener noreferrer" className="text-blue-300">My RYM Account</a>
       </div>
     </div>
