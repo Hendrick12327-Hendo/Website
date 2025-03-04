@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 
 import discogs_client
 from discogs_client.exceptions import HTTPError
@@ -87,6 +88,8 @@ def main():
             break
 
         try:
+            time.sleep(1)
+
             album_data = {}
 
             master_release = discogsclient.master(search_result.id)
@@ -108,9 +111,11 @@ def main():
                 None, "GET", main_release_url, headers={"User-agent": discogsclient.user_agent}
             )
             main_release_data = json.loads(unparsed_main_release_data[0])
+            time.sleep(1)
+
             release_data = main_release_data["released"]
 
-            artists = main_release_data["artists_sort"]
+            artists = main_release_data["artists"][0]["name"]
             image_url = main_release_data["thumb"]
 
             have = main_release_data["community"]["have"]
@@ -134,6 +139,9 @@ def main():
             }
 
             file_name = f"{artists} - {album_name} - {year}.jpg"
+
+            time.sleep(1)
+
             content, resp = discogsclient._fetcher.fetch(
                 None, "GET", image_url, headers={"User-agent": discogsclient.user_agent}
             )
@@ -152,8 +160,6 @@ def main():
             append_to_json(json_file_name, album_data)
         except Exception as e:
             print(f"Error fetching data for {search_result.title}: {e}")
-
-        break
 
     print("\nData saved to data.json")
 
