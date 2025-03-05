@@ -1,2 +1,0 @@
-discogs
-discogs_client

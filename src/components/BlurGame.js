@@ -1,19 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Pixelify } from "react-pixelify";
+import axios from 'axios';
 
-const albumInfo = JSON.parse("data.json");
-const albumImages = require.context('../images/albums', false, /\.(jpg|jpeg|png)$/).keys().map(require.context('../images/albums', false, /\.(jpg|jpeg|png)$/));
+const modes = {
+  advanced: [75, 50, 25],
+  intermediate: [60, 40, 15],
+  beginner: [40, 20, 5]
+};
 
-function getRandomAlbum(currentAlbum) {
-  const eligibleAlbums = albumInfo.filter(album => album.blurGameEligible);
-  const eligibleImages = eligibleAlbums.map(album => albumImages[albumInfo.indexOf(album)]);
-  let newAlbum;
+async function fetchAlbums() {
+  const response = await axios.get('/data.json');
+  const data = response.data;
+  const albums = data.map(album => {
+    const albumName = Object.keys(album)[0];
+    const albumData = album[albumName];
+    albumData.name = albumName;
+    return albumData;
+  }).filter(album => album['Blur Game']);
+  return albums;
+}
+
+async function fetchRandomAlbum(albums, currentAlbum) {
+  let randomAlbum;
   do {
-    const randomIndex = Math.floor(Math.random() * eligibleAlbums.length);
-    newAlbum = { image: eligibleImages[randomIndex], info: eligibleAlbums[randomIndex] };
-  } while (newAlbum.image === currentAlbum.image);
-  return newAlbum;
+    randomAlbum = albums[Math.floor(Math.random() * albums.length)];
+  } while (randomAlbum.name === currentAlbum.name);
+  return randomAlbum;
 }
 
 function normalizeString(str, symbol=false) {
@@ -23,31 +36,52 @@ function normalizeString(str, symbol=false) {
     return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace("&", "and");
 }
 
-const modes = {
-  advanced: [75, 50, 25],
-  intermediate: [60, 40, 15],
-  beginner: [40, 20, 5]
-};
-
 function BlurGame() {
-  const [album, setAlbum] = useState(getRandomAlbum({ image: null }));
+  const [albums, setAlbums] = useState([]);
+  const [album, setAlbum] = useState({ 'Image URL': null, name: '', artist: '', year: '', genre: [], style: [] });
   const [guess, setGuess] = useState('');
   const [isCorrect, setIsCorrect] = useState(false);
   const [pixelSize, setPixelSize] = useState(75);
   const [borderColor, setBorderColor] = useState('');
   const [attempts, setAttempts] = useState(0);
   const [mode, setMode] = useState(null); // Initially, no mode is selected
+  const [suggestions, setSuggestions] = useState([]);
+
+  useEffect(() => {
+    fetchAlbums().then(albums => {
+      setAlbums(albums);
+      fetchRandomAlbum(albums, {}).then(album => {
+        setAlbum(album);
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleGlobalKeyPress = (e) => {
+      if (e.key === 'Enter') {
+        handleGuess();
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyPress);
+
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyPress);
+    };
+  }, [guess, album, albums]);
 
   const handleGuess = () => {
     if (
-      normalizeString(guess, false) === normalizeString(album.info.title, false) ||
-      normalizeString(guess, true) === normalizeString(album.info.title, true)
+      normalizeString(guess, false) === normalizeString(album.name, false) ||
+      normalizeString(guess, true) === normalizeString(album.name, true)
     ) {
       setIsCorrect(true);
       setBorderColor('border-green-500');
       setPixelSize(0);
       setTimeout(() => {
-        setAlbum(getRandomAlbum(album));
+        fetchRandomAlbum(albums, album).then(album => {
+          setAlbum(album);
+        });
         setGuess('');
         setPixelSize(modes[mode][0]);
         setBorderColor('');
@@ -68,7 +102,9 @@ function BlurGame() {
       } else {
         setPixelSize(0);
         setTimeout(() => {
-          setAlbum(getRandomAlbum(album));
+          fetchRandomAlbum(albums, album).then(album => {
+            setAlbum(album);
+          });
           setGuess('');
           setPixelSize(modes[mode][0]);
           setBorderColor('');
@@ -78,23 +114,38 @@ function BlurGame() {
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleGuess();
-    }
-  };
-
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
     setPixelSize(modes[selectedMode][0]);
     setAttempts(0);
     setGuess('');
-    setAlbum(getRandomAlbum({ image: null }));
+    fetchRandomAlbum(albums, album).then(album => {
+      setAlbum(album);
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setGuess(value);
+    if (value) {
+      const filteredSuggestions = albums.filter(album =>
+        album.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setSuggestions(filteredSuggestions);
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setGuess(suggestion.name);
+    setSuggestions([]);
   };
 
   if (!mode) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
+        <Link to="/" className="absolute top-4 left-4 text-blue-300">Go Back</Link>
         <h1 className="text-white text-[35px] mb-4">Select Mode</h1>
         <div className="flex space-x-4">
           <button onClick={() => handleModeSelect('advanced')} className="bg-emerald-600 text-white p-4 rounded-md hover:bg-emerald-700">
@@ -115,7 +166,7 @@ function BlurGame() {
   if (attempts === 0) {
     message = "You have 3 guesses.";
   } else if (attempts >= 3) {
-    message = `Out of guesses! The correct answer was <b>${album.info.title}</b>.`;
+    message = `Out of guesses! The correct answer was <b>${album.name}</b>.`;
   } else if (isCorrect) {
     message = "Correct!";
   } else {
@@ -124,25 +175,37 @@ function BlurGame() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
+      <Link to="/" className="absolute top-4 left-4 text-blue-300">Go Back</Link>
       <div className="mb-4 text-white text-[25px]" dangerouslySetInnerHTML={{ __html: message }} />
       <div className="mb-4">
         <Pixelify
-          src={album.image}
+          src={album['Image URL']}
           pixelSize={pixelSize}
           width={600}
           height={600}
         />
       </div>
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center relative w-full max-w-md">
         <input
           type="text"
           value={guess}
-          onChange={(e) => setGuess(e.target.value)}
-          onKeyDown={handleKeyPress}
+          onChange={handleInputChange}
           placeholder="Album Title..."
-          className={`animate-fade outline-none p-2 mb-4 rounded border-4 ${borderColor}`}
+          className={`animate-fade outline-none p-2 mb-4 rounded border-4 ${borderColor} w-full`}
         />
-        <Link to="/" className="text-blue-300 mb-4">Go Back</Link>
+        {suggestions.length > 0 && (
+          <ul className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded shadow-lg z-10 max-h-20 overflow-y-auto">
+            {suggestions.map((suggestion, index) => (
+              <li
+                key={index}
+                onClick={() => handleSuggestionClick(suggestion)}
+                className="p-2 cursor-pointer hover:bg-gray-200"
+              >
+                {suggestion.name}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
