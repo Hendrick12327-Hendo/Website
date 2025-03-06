@@ -17,8 +17,13 @@ async function fetchAlbums() {
     const albumData = album[albumName];
     albumData.name = albumName;
     return albumData;
-  }).filter(album => album['Blur Game']);
+  });
   return albums;
+}
+
+async function fetchBlurGameAlbums() {
+  const albums = await fetchAlbums();
+  return albums.filter(album => album['Blur Game']);
 }
 
 async function fetchRandomAlbum(albums, currentAlbum) {
@@ -38,6 +43,7 @@ function normalizeString(str, symbol=false) {
 
 function BlurGame() {
   const [albums, setAlbums] = useState([]);
+  const [blurGameAlbums, setBlurGameAlbums] = useState([]);
   const [album, setAlbum] = useState({ 'Image URL': null, name: '', artist: '', year: '', genre: [], style: [] });
   const [guess, setGuess] = useState('');
   const [isCorrect, setIsCorrect] = useState(false);
@@ -50,7 +56,10 @@ function BlurGame() {
   useEffect(() => {
     fetchAlbums().then(albums => {
       setAlbums(albums);
-      fetchRandomAlbum(albums, {}).then(album => {
+    });
+    fetchBlurGameAlbums().then(blurGameAlbums => {
+      setBlurGameAlbums(blurGameAlbums);
+      fetchRandomAlbum(blurGameAlbums, {}).then(album => {
         setAlbum(album);
       });
     });
@@ -79,7 +88,7 @@ function BlurGame() {
       setBorderColor('border-green-500');
       setPixelSize(0);
       setTimeout(() => {
-        fetchRandomAlbum(albums, album).then(album => {
+        fetchRandomAlbum(blurGameAlbums, album).then(album => {
           setAlbum(album);
         });
         setGuess('');
@@ -102,7 +111,7 @@ function BlurGame() {
       } else {
         setPixelSize(0);
         setTimeout(() => {
-          fetchRandomAlbum(albums, album).then(album => {
+          fetchRandomAlbum(blurGameAlbums, album).then(album => {
             setAlbum(album);
           });
           setGuess('');
@@ -119,7 +128,7 @@ function BlurGame() {
     setPixelSize(modes[selectedMode][0]);
     setAttempts(0);
     setGuess('');
-    fetchRandomAlbum(albums, album).then(album => {
+    fetchRandomAlbum(blurGameAlbums, album).then(album => {
       setAlbum(album);
     });
   };
