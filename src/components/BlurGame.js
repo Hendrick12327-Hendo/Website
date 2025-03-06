@@ -131,8 +131,16 @@ function BlurGame() {
       const filteredSuggestions = albums.filter(album =>
         album.name.toLowerCase().includes(value.toLowerCase())
       );
-      setSuggestions(filteredSuggestions);
+      setSuggestions(filteredSuggestions.slice(0, 1)); // Only show the first suggestion
     } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Tab' && suggestions.length > 0) {
+      e.preventDefault();
+      setGuess(suggestions[0].name);
       setSuggestions([]);
     }
   };
@@ -190,6 +198,7 @@ function BlurGame() {
           type="text"
           value={guess}
           onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
           placeholder="Album Title..."
           className={`animate-fade outline-none p-2 mb-4 rounded border-4 ${borderColor} w-full`}
         />

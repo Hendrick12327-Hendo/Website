@@ -55,7 +55,7 @@ const RandomAlbum = () => {
       <button onClick={handleNewAlbum} className="bg-emerald-600 text-white p-4 rounded-md mb-4 hover:bg-emerald-700">
         Give Me Another Album
       </button>
-      <Link to="/" className="text-blue-300 mb-4">Go Back</Link>
+      <Link to="/" className="absolute top-4 left-4 text-blue-300 mb-4">Go Back</Link>
     </div>
   );
 };
