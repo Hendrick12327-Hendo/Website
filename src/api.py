@@ -71,12 +71,21 @@ def append_to_json(filename, new_entry):
             json.dump([new_entry], f, indent=4, ensure_ascii=False)
 
 
+def get_file_image_name(counter):
+    return str(counter).zfill(5) + ".jpg"
+
+
 def main():
     discogsclient = authenticate()
 
     print("\nFetching top 10,000 most collected albums...\n")
 
-    search_results = discogsclient.search(type="master", sort="want", sort_order="desc")
+    # get all the master albums in order sorted by most wanted
+    search_results = discogsclient.search(
+        type="master",
+        sort="want",
+        format_exact="Album",
+    )
 
     json_file_name = "data.json"
     open(json_file_name, "w").close()
@@ -99,6 +108,8 @@ def main():
                 None, "GET", url, headers={"User-agent": discogsclient.user_agent}
             )
             data = json.loads(data[0])
+            main_release_url = data["main_release_url"]
+            time.sleep(1)
 
             album_name = data["title"]
 
@@ -116,13 +127,10 @@ def main():
             release_data = main_release_data["released"]
 
             artists = main_release_data["artists"][0]["name"]
-            image_url = main_release_data["thumb"]
+            image_url = data["images"][0]["uri"]
 
-            have = main_release_data["community"]["have"]
-            want = main_release_data["community"]["want"]
-            rating_count = main_release_data["community"]["rating"]["count"]
-            rating_average = main_release_data["community"]["rating"]["average"]
-
+            file_name = get_file_image_name(counter)
+            file_path = f"images/album_covers/{file_name}"
             album_data[album_name] = {
                 "Rank": counter,
                 "Year": year,
@@ -131,21 +139,17 @@ def main():
                 "Genre": genres,
                 "Style": styles,
                 "Image URL": image_url,
-                "Have": have,
-                "Want": want,
-                "Rating Count": rating_count,
-                "Rating Average": rating_average,
-                "Blur Game": False,
+                "Image Path": file_path,
+                "Discogs": True,
+                "RYM": False,
             }
-
-            file_name = f"{artists} - {album_name} - {year}.jpg"
 
             time.sleep(1)
 
             content, resp = discogsclient._fetcher.fetch(
                 None, "GET", image_url, headers={"User-agent": discogsclient.user_agent}
             )
-            with open(f"images/album_covers/{file_name}", "wb") as fh:
+            with open(file_path, "wb") as fh:
                 fh.write(content)
 
             print(" == Downloading Image ==")
@@ -155,7 +159,7 @@ def main():
             print(f"    * Year: {year}")
             print(f"    * Image URL: {image_url}")
             print(f"    * Response Status: {resp}")
-            print(f"    * Saving as: album_covers/{file_name}")
+            print(f"    * Saving as: images/album_covers/{file_name}")
 
             append_to_json(json_file_name, album_data)
         except Exception as e:
