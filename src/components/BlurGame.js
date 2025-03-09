@@ -2,31 +2,41 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Pixelify } from "react-pixelify";
 
-const modes = {
-  advanced: [75, 50, 25],
-  intermediate: [60, 40, 15],
-  beginner: [40, 20, 5]
-};
-
-function zfill(str, length) {
-  return String(str).padStart(length, '0');
-}
-
-const fetchRandomAlbum = async () => {
+const fetchAlbums = async () => {
   const response = await fetch('/data.json');
   const data = await response.json();
-  const albums = data.map(album => {
+  return data.map(album => {
     const albumName = Object.keys(album)[0];
     const albumData = album[albumName];
     albumData.name = albumName;
     return albumData;
   });
-  const randomAlbum = albums[Math.floor(Math.random() * albums.length)];
+};
+
+const fetchRandomAlbum = (albums, mode, shownAlbums) => {
+  let filteredAlbums = albums;
+
+  if (mode === 'Discogs') {
+    filteredAlbums = albums.filter(album => album.Rank <= 500); // Filter albums with rank 500 or higher
+  } else if (mode === 'RYM') {
+    filteredAlbums = albums.filter(album => album.RYM === true); // Filter albums with RYM: true
+  }
+
+  const availableAlbums = filteredAlbums.filter(album => !shownAlbums.includes(album.name));
+
+  if (availableAlbums.length === 0) {
+    shownAlbums.length = 0; // Reset shown albums if all have been shown
+    return fetchRandomAlbum(albums, mode, shownAlbums);
+  }
+
+  const randomAlbum = availableAlbums[Math.floor(Math.random() * availableAlbums.length)];
   const rank = randomAlbum["Rank"];
   const fileName = String(rank).padStart(5, '0');
   const src = `/images/album_covers/${fileName}.jpg`;
 
-  return { albums, randomAlbum, src };
+  shownAlbums.push(randomAlbum.name);
+
+  return { randomAlbum, src };
 };
 
 function normalizeString(str, symbol=false) {
@@ -45,20 +55,29 @@ function BlurGame() {
   const [pixelSize, setPixelSize] = useState(75);
   const [borderColor, setBorderColor] = useState('');
   const [attempts, setAttempts] = useState(0);
-  const [mode, setMode] = useState(null); // Initially, no mode is selected
+  const [mode, setMode] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [suggestionsIndex, setSuggestionsIndex] = useState(0);
   const [src, setSrc] = useState('');
+  const [shownAlbums, setShownAlbums] = useState([]);
+
+  const pixelSizes = [75, 60, 40, 0];
 
   useEffect(() => {
-    fetchRandomAlbum().then(({ albums, randomAlbum, src }) => {
+    fetchAlbums().then(albums => {
       setAlbums(albums);
-      setAlbum(randomAlbum);
-      setSrc(src);
     }).catch(error => {
-      console.error('Error fetching random album:', error);
+      console.error('Error fetching albums:', error);
     });
   }, []);
+
+  useEffect(() => {
+    if (mode) {
+      const { randomAlbum, src } = fetchRandomAlbum(albums, mode, shownAlbums);
+      setAlbum(randomAlbum);
+      setSrc(src);
+    }
+  }, [mode]);
 
   useEffect(() => {
     const handleGlobalKeyPress = (e) => {
@@ -83,18 +102,15 @@ function BlurGame() {
       setBorderColor('border-green-500');
       setPixelSize(0);
       setTimeout(() => {
-        fetchRandomAlbum().then(({ randomAlbum, src }) => {
-          setAlbum(randomAlbum);
-          setSrc(src);
-          setGuess('');
-          setPixelSize(modes[mode][0]);
-          setBorderColor('');
-          setAttempts(0);
-          setIsCorrect(false);
-          setSuggestions([]);
-        }).catch(error => {
-          console.error('Error fetching random album:', error);
-        });
+        const { randomAlbum, src } = fetchRandomAlbum(albums, mode, shownAlbums);
+        setAlbum(randomAlbum);
+        setSrc(src);
+        setGuess('');
+        setPixelSize(pixelSizes[0]);
+        setBorderColor('');
+        setAttempts(0);
+        setIsCorrect(false);
+        setSuggestions([]);
       }, 1500);
     } else if (!guess)
       return;
@@ -106,21 +122,18 @@ function BlurGame() {
 
       setAttempts(attempts + 1);
       if (attempts < 2) {
-        setPixelSize(modes[mode][attempts + 1]);
+        setPixelSize(pixelSizes[attempts + 1]);
       } else {
         setPixelSize(0);
         setTimeout(() => {
-          fetchRandomAlbum().then(({ randomAlbum, src }) => {
-            setAlbum(randomAlbum);
-            setSrc(src);
-            setGuess('');
-            setPixelSize(modes[mode][0]);
-            setBorderColor('');
-            setAttempts(0);
-            setSuggestions([]);
-          }).catch(error => {
-            console.error('Error fetching random album:', error);
-          });
+          const { randomAlbum, src } = fetchRandomAlbum(albums, mode, shownAlbums);
+          setAlbum(randomAlbum);
+          setSrc(src);
+          setGuess('');
+          setPixelSize(pixelSizes[0]);
+          setBorderColor('');
+          setAttempts(0);
+          setSuggestions([]);
         }, 1500);
       }
     }
@@ -128,15 +141,13 @@ function BlurGame() {
 
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
-    setPixelSize(modes[selectedMode][0]);
+    setPixelSize(pixelSizes[0]);
     setAttempts(0);
     setGuess('');
-    fetchRandomAlbum().then(({ randomAlbum, src }) => {
-      setAlbum(randomAlbum);
-      setSrc(src);
-    }).catch(error => {
-      console.error('Error fetching random album:', error);
-    });
+    setShownAlbums([]);
+    const { randomAlbum, src } = fetchRandomAlbum(albums, selectedMode, shownAlbums);
+    setAlbum(randomAlbum);
+    setSrc(src);
   };
 
   const handleInputChange = (e) => {
@@ -159,12 +170,6 @@ function BlurGame() {
       e.preventDefault();
       setGuess(suggestions[suggestionsIndex].name);
       setSuggestionsIndex(0);
-      // if (suggestions.length == 1)
-      //   setSuggestionsIndex(0);
-      // else if (suggestionsIndex > suggestions.length)
-      //   setSuggestionsIndex(suggestions.length);
-      // else
-      //   setSuggestionsIndex(suggestionsIndex + 1);
     }
   };
 
@@ -177,16 +182,13 @@ function BlurGame() {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <Link to="/" className="absolute top-4 left-4 text-blue-300">Go Back</Link>
-        <h1 className="text-white text-[35px] mb-4">Select Mode</h1>
+        <h1 className="text-white text-[35px] mb-4">Select Game Mode</h1>
         <div className="flex space-x-4">
-          <button onClick={() => handleModeSelect('advanced')} className="bg-emerald-600 text-white p-4 rounded-md hover:bg-emerald-700">
-            Advanced
+          <button onClick={() => handleModeSelect('RYM')} className="bg-emerald-600 text-white p-4 rounded-md hover:bg-emerald-700">
+            RYM
           </button>
-          <button onClick={() => handleModeSelect('intermediate')} className="bg-emerald-600 text-white p-4 rounded-md hover:bg-emerald-700">
-            Intermediate
-          </button>
-          <button onClick={() => handleModeSelect('beginner')} className="bg-emerald-600 text-white p-4 rounded-md hover:bg-emerald-700">
-            Beginner
+          <button onClick={() => handleModeSelect('Discogs')} className="bg-emerald-600 text-white p-4 rounded-md hover:bg-emerald-700">
+            Discogs
           </button>
         </div>
       </div>
