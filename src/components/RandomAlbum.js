@@ -44,7 +44,7 @@ const RandomAlbum = () => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen relative">
-      <img src={album['Image URL']} alt="Random Album" className="w-1/2 h-auto mb-4 mt-[-500px] transform scale-[0.2]" onError={(e) => { e.target.onerror = null; e.target.src = 'images/album_covers/default.jpg'; }} />
+      <img src={album['Image URL']} alt="Random Album" className="w-1/2 h-auto mb-4 mt-[-500px] transform scale-[0.35]" onError={(e) => { e.target.onerror = null; e.target.src = 'images/album_covers/default.jpg'; }} />
       <div className="text-center mb-4 mt-[-300px]">
         <h2 className="text-2xl font-bold text-white">{album.name}</h2>
         <p className="text-xl text-white">{album['Artist']}</p>

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Pixelify } from "react-pixelify";
-import axios from 'axios';
 
 const modes = {
   advanced: [75, 50, 25],
@@ -9,32 +8,29 @@ const modes = {
   beginner: [40, 20, 5]
 };
 
-async function fetchAlbums() {
-  const response = await axios.get('/data.json');
-  const data = response.data;
+function zfill(str, length) {
+  return String(str).padStart(length, '0');
+}
+
+const fetchRandomAlbum = async () => {
+  const response = await fetch('/data.json');
+  const data = await response.json();
   const albums = data.map(album => {
     const albumName = Object.keys(album)[0];
     const albumData = album[albumName];
     albumData.name = albumName;
     return albumData;
   });
-  return albums;
-}
+  const randomAlbum = albums[Math.floor(Math.random() * albums.length)];
+  const rank = randomAlbum["Rank"];
+  const fileName = String(rank).padStart(5, '0');
+  const src = `/images/album_covers/${fileName}.jpg`;
 
-async function fetchBlurGameAlbums() {
-  const albums = await fetchAlbums();
-  return albums.filter(album => album['Blur Game']);
-}
-
-async function fetchRandomAlbum(albums, currentAlbum) {
-  let randomAlbum;
-  do {
-    randomAlbum = albums[Math.floor(Math.random() * albums.length)];
-  } while (randomAlbum.name === currentAlbum.name);
-  return randomAlbum;
-}
+  return { albums, randomAlbum, src };
+};
 
 function normalizeString(str, symbol=false) {
+  if (!str) return '';
   if (symbol)
     return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   else
@@ -42,9 +38,8 @@ function normalizeString(str, symbol=false) {
 }
 
 function BlurGame() {
+  const [album, setAlbum] = useState(null);
   const [albums, setAlbums] = useState([]);
-  const [blurGameAlbums, setBlurGameAlbums] = useState([]);
-  const [album, setAlbum] = useState({ 'Image URL': null, name: '', artist: '', year: '', genre: [], style: [] });
   const [guess, setGuess] = useState('');
   const [isCorrect, setIsCorrect] = useState(false);
   const [pixelSize, setPixelSize] = useState(75);
@@ -52,16 +47,16 @@ function BlurGame() {
   const [attempts, setAttempts] = useState(0);
   const [mode, setMode] = useState(null); // Initially, no mode is selected
   const [suggestions, setSuggestions] = useState([]);
+  const [suggestionsIndex, setSuggestionsIndex] = useState(0);
+  const [src, setSrc] = useState('');
 
   useEffect(() => {
-    fetchAlbums().then(albums => {
+    fetchRandomAlbum().then(({ albums, randomAlbum, src }) => {
       setAlbums(albums);
-    });
-    fetchBlurGameAlbums().then(blurGameAlbums => {
-      setBlurGameAlbums(blurGameAlbums);
-      fetchRandomAlbum(blurGameAlbums, {}).then(album => {
-        setAlbum(album);
-      });
+      setAlbum(randomAlbum);
+      setSrc(src);
+    }).catch(error => {
+      console.error('Error fetching random album:', error);
     });
   }, []);
 
@@ -77,7 +72,7 @@ function BlurGame() {
     return () => {
       window.removeEventListener('keydown', handleGlobalKeyPress);
     };
-  }, [guess, album, albums]);
+  }, [guess, album]);
 
   const handleGuess = () => {
     if (
@@ -88,22 +83,26 @@ function BlurGame() {
       setBorderColor('border-green-500');
       setPixelSize(0);
       setTimeout(() => {
-        fetchRandomAlbum(blurGameAlbums, album).then(album => {
-          setAlbum(album);
+        fetchRandomAlbum().then(({ randomAlbum, src }) => {
+          setAlbum(randomAlbum);
+          setSrc(src);
+          setGuess('');
+          setPixelSize(modes[mode][0]);
+          setBorderColor('');
+          setAttempts(0);
+          setIsCorrect(false);
+          setSuggestions([]);
+        }).catch(error => {
+          console.error('Error fetching random album:', error);
         });
-        setGuess('');
-        setPixelSize(modes[mode][0]);
-        setBorderColor('');
-        setAttempts(0);
-        setIsCorrect(false);
-      }, 1500); // Milliseconds, 1000 ms = 1 second
+      }, 1500);
     } else if (!guess)
       return;
     else {
       setBorderColor('border-red-500');
       setTimeout(() => {
         setBorderColor('');
-      }, 300); // Flash red for 1 second
+      }, 300);
 
       setAttempts(attempts + 1);
       if (attempts < 2) {
@@ -111,14 +110,18 @@ function BlurGame() {
       } else {
         setPixelSize(0);
         setTimeout(() => {
-          fetchRandomAlbum(blurGameAlbums, album).then(album => {
-            setAlbum(album);
+          fetchRandomAlbum().then(({ randomAlbum, src }) => {
+            setAlbum(randomAlbum);
+            setSrc(src);
+            setGuess('');
+            setPixelSize(modes[mode][0]);
+            setBorderColor('');
+            setAttempts(0);
+            setSuggestions([]);
+          }).catch(error => {
+            console.error('Error fetching random album:', error);
           });
-          setGuess('');
-          setPixelSize(modes[mode][0]);
-          setBorderColor('');
-          setAttempts(0);
-        }, 1500); // Milliseconds, 1000 ms = 1 second
+        }, 1500);
       }
     }
   };
@@ -128,19 +131,24 @@ function BlurGame() {
     setPixelSize(modes[selectedMode][0]);
     setAttempts(0);
     setGuess('');
-    fetchRandomAlbum(blurGameAlbums, album).then(album => {
-      setAlbum(album);
+    fetchRandomAlbum().then(({ randomAlbum, src }) => {
+      setAlbum(randomAlbum);
+      setSrc(src);
+    }).catch(error => {
+      console.error('Error fetching random album:', error);
     });
   };
 
   const handleInputChange = (e) => {
     const value = e.target.value;
     setGuess(value);
+
     if (value) {
       const filteredSuggestions = albums.filter(album =>
         album.name.toLowerCase().includes(value.toLowerCase())
       );
-      setSuggestions(filteredSuggestions.slice(0, 1)); // Only show the first suggestion
+
+      setSuggestions(filteredSuggestions);
     } else {
       setSuggestions([]);
     }
@@ -149,8 +157,14 @@ function BlurGame() {
   const handleKeyDown = (e) => {
     if (e.key === 'Tab' && suggestions.length > 0) {
       e.preventDefault();
-      setGuess(suggestions[0].name);
-      setSuggestions([]);
+      setGuess(suggestions[suggestionsIndex].name);
+      setSuggestionsIndex(0);
+      // if (suggestions.length == 1)
+      //   setSuggestionsIndex(0);
+      // else if (suggestionsIndex > suggestions.length)
+      //   setSuggestionsIndex(suggestions.length);
+      // else
+      //   setSuggestionsIndex(suggestionsIndex + 1);
     }
   };
 
@@ -180,12 +194,12 @@ function BlurGame() {
   }
 
   let message;
-  if (attempts === 0) {
+  if (isCorrect) {
+    message = "Correct!";
+  } else if (attempts === 0) {
     message = "You have 3 guesses.";
   } else if (attempts >= 3) {
     message = `Out of guesses! The correct answer was <b>${album.name}</b>.`;
-  } else if (isCorrect) {
-    message = "Correct!";
   } else {
     message = `You have ${3 - attempts} guesses left.`;
   }
@@ -195,12 +209,18 @@ function BlurGame() {
       <Link to="/" className="absolute top-4 left-4 text-blue-300">Go Back</Link>
       <div className="mb-4 text-white text-[25px]" dangerouslySetInnerHTML={{ __html: message }} />
       <div className="mb-4">
-        <Pixelify
-          src={album['Image URL']}
-          pixelSize={pixelSize}
-          width={600}
-          height={600}
-        />
+        {album && src ? (
+          <Pixelify
+            src={src}
+            pixelSize={pixelSize}
+            width={600}
+            height={600}
+          />
+        ) : (
+          <div className="w-[600px] h-[600px] bg-gray-300 flex items-center justify-center">
+            <span className="text-gray-500">No Image Available</span>
+          </div>
+        )}
       </div>
       <div className="flex flex-col items-center relative w-full max-w-md">
         <input
