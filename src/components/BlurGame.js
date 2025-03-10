@@ -160,6 +160,7 @@ function BlurGame() {
       );
 
       setSuggestions(filteredSuggestions);
+      setSuggestionsIndex(0); // Reset suggestions index
     } else {
       setSuggestions([]);
     }
@@ -168,8 +169,13 @@ function BlurGame() {
   const handleKeyDown = (e) => {
     if (e.key === 'Tab' && suggestions.length > 0) {
       e.preventDefault();
-      setGuess(suggestions[suggestionsIndex].name);
-      setSuggestionsIndex(0);
+      if (suggestions.length === 1) {
+        setGuess(suggestions[0].name);
+        setSuggestions([]);
+      } else {
+        setSuggestionsIndex((suggestionsIndex + 1) % suggestions.length);
+        setGuess(suggestions[suggestionsIndex].name);
+      }
     }
   };
 
