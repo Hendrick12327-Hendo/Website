@@ -61,7 +61,7 @@ function BlurGame() {
   const [src, setSrc] = useState('');
   const [shownAlbums, setShownAlbums] = useState([]);
 
-  const pixelSizes = [75, 60, 40, 0];
+  const pixelSizes = [75, 60, 25, 0];
 
   useEffect(() => {
     fetchAlbums().then(albums => {
